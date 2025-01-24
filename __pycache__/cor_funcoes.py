@@ -117,6 +117,34 @@ def calcular_desistentes(df_anterior, df_atual, coluna_nome):
     desistentes = list(set_anterior - set_atual)
     return desistentes
 
+#############################################################
+#              CONVERSÃO COLUNAS E CASAS DECIMAIS           #
+#############################################################
+
+def converter_e_arredondar(df, colunas, casas_decimais=2):
+    """
+    Converte as colunas especificadas de um DataFrame para float e arredonda os valores.
+
+    Parâmetros:
+    - df (pd.DataFrame): DataFrame original.
+    - colunas (list): Lista com os nomes das colunas a serem convertidas.
+    - casas_decimais (int): Número de casas decimais para arredondar (padrão: 2).
+
+    Retorna:
+    - pd.DataFrame: DataFrame com as colunas convertidas e arredondadas.
+    """
+    try:
+        # Iterar pelas colunas para conversão
+        for coluna in colunas:
+            if coluna in df.columns:
+                df[coluna] = pd.to_numeric(df[coluna], errors='coerce').round(casas_decimais)
+        print(f"Colunas {colunas} foram convertidas para float e arredondadas para {casas_decimais} casas decimais.")
+    except Exception as e:
+        print(f"Erro ao converter ou arredondar colunas: {e}")
+    return df
+
+
+
 
 #-------------------------------GRAFICOS-----------------------------------------------------------------#
 
