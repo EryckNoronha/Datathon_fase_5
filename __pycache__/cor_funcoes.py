@@ -151,7 +151,7 @@ def converter_e_arredondar(df, colunas, casas_decimais=2):
 #############################################################
 #               GRAFICO DE BARRAS - CONTAGEM                #
 #############################################################
-def plot_exact_counter(size, x, y, df) -> None:
+def plot_exact_counter(size, text, x, y, df) -> None:
     """
     Gera um gráfico de barras com contagens específicas, incluindo os valores exatos de cada barra.
 
@@ -180,9 +180,11 @@ def plot_exact_counter(size, x, y, df) -> None:
     for index, value in enumerate(y.values):
         plt.text(index, value, round(value, 2), color='black', ha="center")
 
+    # Adiciona o título ao gráfico
+    plt.title(f'{text}')
+    
     # Exibe o gráfico
     plt.show()
-
 
 #############################################################
 #                      MATRIZ DE CORRELAÇÃO                 #
@@ -217,3 +219,71 @@ def analyse_corr(df):
 
     # Exibe o gráfico
     plt.show()
+
+
+#############################################################
+#           BARRAS COMPARATIVAS DE METRICAS                 #
+#############################################################
+
+def comparar_colunas_por_metrica(df_alunos_3_anos, dfs_somente_anos, anos):
+    """
+    Cria um único gráfico de barras agrupadas comparando todas as colunas correspondentes à mesma métrica
+    de diferentes anos entre os DataFrames `df_alunos_3_anos` e `dfs_somente_anos`.
+
+    Args:
+        df_alunos_3_anos (pd.DataFrame): DataFrame contendo os dados acumulados de todos os anos.
+        dfs_somente_anos (dict): Dicionário com os DataFrames de cada ano (exemplo: {'2020': df_somente_2020}).
+        anos (list): Lista de anos a serem comparados.
+    """
+    # Identificar as métricas comuns (prefixos das colunas, ignorando o ano)
+    colunas_prefixos = ['ALTO_AVALIACAO', 'ENGAJAMENTO', 'PISICOSSOCIAL', 'APRENDIZAGEM']
+    
+    # Lista de cores para variar a cada gráfico
+    cores = ['blue', 'green', 'red', 'orange']
+    
+    for idx, prefixo in enumerate(colunas_prefixos):
+        # Listas para armazenar os valores médios por ano
+        medias_somente = []
+        medias_alunos = []
+        labels_anos = []
+        
+        for ano in anos:
+            coluna = f"{prefixo}_{ano}"
+            
+            # Pega o DataFrame do respectivo ano
+            df_somente = dfs_somente_anos.get(ano)
+            
+            if df_somente is not None and coluna in df_somente.columns and coluna in df_alunos_3_anos.columns:
+                # Calcular a média para o DataFrame de alunos somente daquele ano
+                media_somente = df_somente[coluna].mean()
+                medias_somente.append(media_somente)
+                
+                # Calcular a média para o DataFrame acumulado (df_alunos_3_anos)
+                media_alunos = df_alunos_3_anos[coluna].mean()
+                medias_alunos.append(media_alunos)
+                
+                labels_anos.append(ano)
+            else:
+                print(f"Coluna {coluna} não encontrada em algum dos DataFrames.")
+        
+        # Criar o gráfico agrupado
+        x = np.arange(len(labels_anos))  # Posições no eixo X
+        largura = 0.25  # Reduzir a largura das barras para deixá-las mais finas
+        
+        plt.figure(figsize=(12, 8))  # Aumentar o tamanho da figura para acomodar as barras finas
+        
+        # Barras para df_somente_{ano}
+        plt.bar(x - largura/2, medias_somente, largura, label='Somente Alunos', color=cores[idx % len(cores)])  # Cor dinâmica
+        
+        # Barras para df_alunos_3_anos
+        plt.bar(x + largura/2, medias_alunos, largura, label='Alunos 3 Anos', color=cores[(idx + 1) % len(cores)])  # Cor dinâmica
+        
+        # Configurações do gráfico
+        plt.xticks(x, [f"{prefixo}_{ano}" for ano in labels_anos], rotation=45, ha='right')
+        plt.ylabel('Média')
+        plt.title(f'Comparação da Métrica: {prefixo}')
+        plt.legend()
+        plt.tight_layout()
+        
+        # Exibir o gráfico
+        plt.show()
